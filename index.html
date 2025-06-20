@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITT WDCP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        .hidden-result-container {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.7s ease-out, opacity 0.7s ease-out;
+        }
+        .show-result-container {
+            max-height: 1000px;
+            opacity: 1;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: 80px;
+            background-color: #ffffff;
+            padding: 5px 0;
+            border-radius: 6px;
+        }
+        .result-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+        .result-card:hover {
+            transform: translateY(-3px);
+        }
+        .card-enter {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .card-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .data-value-only {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            text-align: center;
+            width: 100%;
+        }
+        .data-value-modis {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #2d3748;
+            text-align: center;
+            width: 100%;
+        }
+        .data-label-shel-baris {
+            font-weight: 500;
+            color: #4a5568;
+        }
+        .data-value-shel-baris {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .shel-baris-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        .shel-baris-item {
+            text-align: center;
+        }
+        .button-flat {
+            transition: background-color 0.15s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.15s ease-in-out;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .button-flat:hover:not(:disabled) {
+            background-color: #2563eb;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .button-flat:active {
+            transform: scale(0.98);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .loading-animation {
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6 lg:p-8">
+    <div id="loginScreen" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-lg text-center w-full max-w-sm mx-auto border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Selamat Datang</h2>
+            <p class="text-gray-600 mb-6">Masukkan kata sandi Anda untuk melanjutkan.</p>
+            <div class="relative mb-4">
+                <input
+                    type="password"
+                    id="passwordInput"
+                    placeholder="Kata Sandi"
+                    class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-base"
+                />
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <i data-lucide="lock" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <button id="loginBtn" class="button-flat bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg w-full flex items-center justify-center gap-2">
+                <i data-lucide="log-in" class="w-5 h-5"></i>
+                <span>Masuk</span>
+            </button>
+            <p id="authStatus" class="mt-4 text-sm text-red-500 h-5"></p>
+            <button id="logoutBtn" class="button-flat bg-red-500 text-white font-semibold py-2 px-4 rounded-lg w-full hidden items-center justify-center gap-2 mt-4">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden w-full max-w-xl mx-auto">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full mx-auto border border-gray-200 mt-8 mb-8">
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <i data-lucide="qr-code" class="w-8 h-8 text-blue-500"></i>
+                <h1 class="text-3xl font-extrabold text-center text-gray-800 tracking-tight">ITT WDCP</h1>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div class="relative">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Cari PLU atau Nama Produk..."
+                        class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base"
+                    />
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <button
+                    id="searchButton"
+                    class="button-flat bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg w-full flex items-center justify-center gap-2"
+                >
+                    <i data-lucide="scan" class="w-5 h-5"></i>
+                    <span>Cari Barcode</span>
+                </button>
+            </div>
+
+            <div class="mt-8 border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4 text-center">Filter Data</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label for="modisFilter" class="block text-sm font-medium text-gray-600 mb-2">MODIS:</label>
+                        <select id="modisFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-700">
+                            <option value="">Semua MODIS</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="shelDariFilter" class="block text-sm font-medium text-gray-600 mb-2">SHEL Dari:</label>
+                        <select id="shelDariFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-700">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="shelSampaiFilter" class="block text-sm font-medium text-gray-600 mb-2">SHEL Sampai:</label>
+                        <select id="shelSampaiFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-700">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="resetButton" class="button-flat bg-gray-500 text-white font-semibold py-2.5 px-5 rounded-lg w-full flex items-center justify-center gap-2 mt-6">
+                     <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                     <span>Reset Filter & Pencarian</span>
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="hidden text-center text-blue-600 font-medium my-6 p-4 rounded-lg bg-blue-50 loading-animation flex items-center justify-center gap-3 border border-blue-200">
+                <i data-lucide="loader-circle" class="animate-spin w-5 h-5"></i>
+                <span>Memuat data, mohon tunggu...</span>
+            </div>
+
+            <div id="resultsContainer" class="hidden-result-container bg-gray-50 p-5 rounded-lg border border-gray-200 mt-6">
+                <div id="searchResults" class="space-y-6">
+                </div>
+                
+                <div id="paginationControls" class="flex justify-between items-center mt-6 hidden">
+                    <button id="prevPageBtn" class="button-flat p-2.5 bg-blue-500 text-white font-bold rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10">
+                        <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                    </button>
+                    <span id="pageInfo" class="text-base font-semibold text-gray-700 px-3"></span>
+                    <button id="nextPageBtn" class="button-flat p-2.5 bg-blue-500 text-white font-bold rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10">
+                        <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div id="noResults" class="hidden-result-container text-center text-red-600 mt-6 p-4 bg-red-50 rounded-xl border border-red-200 flex items-center justify-center gap-3">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                    <span class="font-medium">Tidak ada hasil yang cocok dengan kriteria Anda.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        lucide.createIcons();
+        
+        const CORRECT_PASSWORD = "F8YF";
+
+        const loginScreen = document.getElementById('loginScreen');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const authStatus = document.getElementById('authStatus');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const mainApp = document.getElementById('mainApp');
+
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const searchResultsDiv = document.getElementById('searchResults');
+        const paginationControls = document.getElementById('paginationControls');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageInfoSpan = document.getElementById('pageInfo');
+        const noResultsDiv = document.getElementById('noResults');
+        const resetButton = document.getElementById('resetButton');
+
+        const modisFilter = document.getElementById('modisFilter');
+        const shelDariFilter = document.getElementById('shelDariFilter');
+        const shelSampaiFilter = document.getElementById('shelSampaiFilter');
+        
+        const MODIS_URL = 'https://raw.githubusercontent.com/Mharyrafli/DATA/refs/heads/main/MODIS.json';
+        const BARCODE_URL = 'https://raw.githubusercontent.com/Mharyrafli/DATA/refs/heads/main/BARCODE.json';
+        
+        let allModisData = []; 
+        let barcodeDataArray = []; 
+        let uniqueModisValues = new Set();
+        let uniqueShelValues = new Set();
+
+        let filteredResults = []; 
+        let currentPage = 1;
+        const itemsPerPage = 1;
+
+        function setAuthStatus(message, isError = true) {
+            authStatus.textContent = message;
+            authStatus.className = `mt-4 text-sm font-medium h-5 ${isError ? 'text-red-500' : 'text-green-500'}`;
+        }
+
+        loginBtn.addEventListener('click', () => {
+            if (passwordInput.value === CORRECT_PASSWORD) {
+                setAuthStatus("Berhasil masuk!", false);
+                setTimeout(() => {
+                    loginScreen.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                    loginBtn.classList.add('hidden');
+                    logoutBtn.classList.remove('hidden');
+                    passwordInput.classList.add('hidden');
+                    loadAllData();
+                }, 400);
+            } else {
+                setAuthStatus("Kata sandi salah. Coba lagi.");
+                passwordInput.classList.add('border-red-400');
+                setTimeout(() => passwordInput.classList.remove('border-red-400'), 1500);
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            loginScreen.classList.remove('hidden');
+            mainApp.classList.add('hidden');
+            passwordInput.value = '';
+            setAuthStatus("");
+            authStatus.textContent = "Masukkan kata sandi Anda untuk melanjutkan.";
+            authStatus.className = 'text-gray-600 mb-6';
+            loginBtn.classList.remove('hidden');
+            logoutBtn.classList.add('hidden');
+            passwordInput.classList.remove('hidden');
+            resetFiltersAndSearch();
+        });
+
+        function parseJsonWrappedDelimited(jsonArray) {
+            const parsedData = [];
+            if (!jsonArray || jsonArray.length === 0) return parsedData;
+            const firstEntryKey = Object.keys(jsonArray[0])[0];
+            const headers = firstEntryKey.split('|').map(header => header.trim());
+            jsonArray.forEach(obj => {
+                const dataString = Object.values(obj)[0];
+                const values = dataString.split('|').map(value => value.trim());
+                const row = {};
+                let actualValues = values;
+                if (values.length === headers.length + 1 && values[0] === '') {
+                    actualValues = values.slice(1);
+                }
+                headers.forEach((header, index) => {
+                    row[header] = actualValues[index] || ''; 
+                });
+                parsedData.push(row);
+            });
+            return parsedData;
+        }
+
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const rawText = await response.text();
+                try {
+                    const jsonContent = JSON.parse(rawText);
+                    if (Array.isArray(jsonContent) && jsonContent.every(item => typeof item === 'object' && Object.keys(item).length === 1 && typeof Object.values(item)[0] === 'string')) {
+                        return parseJsonWrappedDelimited(jsonContent);
+                    }
+                    return jsonContent;
+                } catch (jsonError) {
+                    return [];
+                }
+            } catch (error) {
+                console.error(`Failed to load or parse data from ${url}:`, error);
+                return [];
+            }
+        }
+
+        function populateFilters() {
+            modisFilter.innerHTML = '<option value="">Semua MODIS</option>';
+            shelDariFilter.innerHTML = '<option value="">Semua</option>';
+            shelSampaiFilter.innerHTML = '<option value="">Semua</option>';
+            uniqueModisValues.clear();
+            uniqueShelValues.clear();
+
+            allModisData.forEach(item => {
+                const modisVal = item.MODIS || item.modis_info;
+                if (modisVal) uniqueModisValues.add(modisVal);
+                const shelVal = item.lokasi_rak || item.SHEL;
+                if (shelVal) uniqueShelValues.add(shelVal);
+            });
+
+            const sortedModis = Array.from(uniqueModisValues).sort();
+            const sortedShel = Array.from(uniqueShelValues).sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}));
+
+            sortedModis.forEach(val => {
+                modisFilter.innerHTML += `<option value="${val}">${val}</option>`;
+            });
+            sortedShel.forEach(val => {
+                shelDariFilter.innerHTML += `<option value="${val}">${val}</option>`;
+                shelSampaiFilter.innerHTML += `<option value="${val}">${val}</option>`;
+            });
+        }
+
+        async function loadAllData() {
+            resultsContainer.classList.remove('show-result-container');
+            resultsContainer.classList.add('hidden-result-container');
+            noResultsDiv.classList.remove('show-result-container');
+            noResultsDiv.classList.add('hidden-result-container');
+            paginationControls.classList.add('hidden');
+
+            loadingIndicator.classList.remove('hidden');
+            try {
+                [allModisData, barcodeDataArray] = await Promise.all([
+                    fetchData(MODIS_URL),
+                    fetchData(BARCODE_URL)
+                ]);
+                populateFilters();
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        function itemMatchesKeywords(item, keywords) {
+            if (keywords.length === 0) return true;
+            for (const keyword of keywords) {
+                for (const key in item) {
+                    if (Object.prototype.hasOwnProperty.call(item, key)) {
+                        if (String(item[key]).toLowerCase().includes(keyword)) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function performSearch() {
+            const keywords = searchInput.value.toLowerCase().trim().split(/[\s\n]+/).filter(k => k);
+            const selectedModis = modisFilter.value;
+            const selectedShelDari = shelDariFilter.value;
+            const selectedShelSampai = shelSampaiFilter.value;
+            
+            filteredResults = [];
+            const seenCards = new Set();
+
+            allModisData.forEach(modisItem => {
+                const modisPlu = String(modisItem.kode_produk || modisItem.PLU || '').toLowerCase();
+                const keywordMatch = keywords.length === 0 || itemMatchesKeywords(modisItem, keywords);
+                
+                const modisVal = modisItem.MODIS || modisItem.modis_info;
+                const shelVal = modisItem.lokasi_rak || modisItem.SHEL;
+                const numShelVal = parseInt(shelVal, 10);
+
+                const modisFilterMatch = !selectedModis || modisVal === selectedModis;
+                const shelDariFilterMatch = !selectedShelDari || (!isNaN(numShelVal) && numShelVal >= parseInt(selectedShelDari, 10));
+                const shelSampaiFilterMatch = !selectedShelSampai || (!isNaN(numShelVal) && numShelVal <= parseInt(selectedShelSampai, 10));
+
+                if (keywordMatch && modisFilterMatch && shelDariFilterMatch && shelSampaiFilterMatch) {
+                    let associatedBarcodeValue = null;
+                    const relevantBarcodes = barcodeDataArray.filter(bc => String(bc.PLU || '').toLowerCase() === modisPlu);
+                    if (relevantBarcodes.length > 0) {
+                        const trfBarcode = relevantBarcodes.find(bc => String(bc.UPDID || '').toUpperCase() === 'TRF');
+                        associatedBarcodeValue = trfBarcode ? trfBarcode.BARCD : relevantBarcodes[0].BARCD;
+                    }
+
+                    const displayData = {
+                        PLU: modisItem.kode_produk || modisItem.PLU,
+                        NAMA: modisItem.nama_produk || modisItem.NAMA,
+                        MODIS_FIELD: modisVal,
+                        SHEL: shelVal,
+                        BARIS: modisItem.lokasi_baris || modisItem.BARIS,
+                        BARCD: associatedBarcodeValue
+                    };
+                    
+                    const uniqueId = JSON.stringify(displayData);
+                    if (!seenCards.has(uniqueId)) {
+                        filteredResults.push(displayData);
+                        seenCards.add(uniqueId);
+                    }
+                }
+            });
+
+            currentPage = 1;
+            displayCurrentPageResults();
+            
+            if (filteredResults.length > 0) {
+                resultsContainer.classList.remove('hidden-result-container');
+                resultsContainer.classList.add('show-result-container');
+                noResultsDiv.classList.remove('show-result-container');
+                noResultsDiv.classList.add('hidden-result-container');
+                paginationControls.classList.remove('hidden');
+            } else {
+                resultsContainer.classList.remove('show-result-container');
+                resultsContainer.classList.add('hidden-result-container');
+                noResultsDiv.classList.remove('hidden-result-container');
+                noResultsDiv.classList.add('show-result-container');
+                paginationControls.classList.add('hidden');
+            }
+        }
+        
+        function displayCurrentPageResults() {
+            searchResultsDiv.innerHTML = '';
+            const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const itemsToDisplay = filteredResults.slice(startIndex, startIndex + itemsPerPage);
+
+            itemsToDisplay.forEach((itemData, index) => {
+                const card = renderCard(itemData);
+                searchResultsDiv.appendChild(card);
+                setTimeout(() => card.classList.add('card-enter-active'), 50 * (index + 1)); 
+            });
+
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+            pageInfoSpan.textContent = `${totalPages > 0 ? currentPage : 0} dari ${totalPages}`;
+        }
+
+        function renderCard(data) {
+            const resultCard = document.createElement('div');
+            resultCard.className = 'result-card bg-white p-5 rounded-xl shadow-lg border border-gray-100 card-enter';
+
+            const pluP = document.createElement('p');
+            pluP.className = 'data-value-only mb-1';
+            pluP.textContent = data.PLU || '-';
+            resultCard.appendChild(pluP);
+
+            const namaP = document.createElement('p');
+            namaP.className = 'data-value-only mb-1';
+            namaP.textContent = data.NAMA || '-';
+            resultCard.appendChild(namaP);
+
+            if (data.BARCD && String(data.BARCD).trim() !== '') { 
+                const barcodeSectionDiv = document.createElement('div');
+                barcodeSectionDiv.className = 'flex flex-col items-center py-3 border-t border-b border-gray-200 my-4 bg-gray-50 rounded-lg';
+
+                const canvas = document.createElement('canvas');
+                canvas.className = 'w-full h-auto mb-2'; 
+                barcodeSectionDiv.appendChild(canvas);
+
+                const barcodeValue = String(data.BARCD).trim();
+                let barcodeFormat = "CODE128";
+
+                const isNumeric = /^\d+$/.test(barcodeValue);
+
+                if (isNumeric) {
+                    if (barcodeValue.length === 12) { 
+                        barcodeFormat = "UPC";
+                    } else if (barcodeValue.length === 13) { 
+                        barcodeFormat = "EAN13";
+                    } else if (barcodeValue.length === 8) { 
+                        barcodeFormat = "EAN8";
+                    } else if (barcodeValue.length === 6) { 
+                        barcodeFormat = "UPCE";
+                    }
+                }
+
+                try {
+                    JsBarcode(canvas, barcodeValue, {
+                        format: barcodeFormat,
+                        displayValue: false,
+                        background: "#ffffff",
+                        lineColor: "#000000",
+                        width: 2,
+                        height: 80,
+                        margin: 10,
+                        textMargin: 0,
+                        flat: true
+                    });
+                    const barcodeTextP = document.createElement('p');
+                    barcodeTextP.className = 'text-md text-gray-800 text-center font-mono font-semibold';
+                    barcodeTextP.textContent = barcodeValue;
+                    barcodeSectionDiv.appendChild(barcodeTextP);
+
+                } catch (e) {
+                    console.warn(`Gagal membuat barcode dengan format ${barcodeFormat}. Mencoba CODE128. Error:`, e.message);
+                    try {
+                        JsBarcode(canvas, barcodeValue, {
+                            format: "CODE128", 
+                            displayValue: false,
+                            background: "#ffffff",
+                            lineColor: "#000000",
+                            width: 2,
+                            height: 80,
+                            margin: 10,
+                            textMargin: 0,
+                            flat: true
+                        });
+                        const barcodeTextP = document.createElement('p');
+                        barcodeTextP.className = 'text-md text-gray-800 text-center font-mono font-semibold';
+                        barcodeTextP.textContent = barcodeValue;
+                        barcodeSectionDiv.appendChild(barcodeTextP);
+
+                    } catch (fallbackError) {
+                        console.error("Kesalahan membuat barcode bahkan dengan CODE128:", barcodeValue, fallbackError);
+                        const errorP = document.createElement('p');
+                        errorP.className = 'text-sm text-red-600 mt-1 mb-2 text-center';
+                        errorP.textContent = `Gagal membuat barcode untuk: ${barcodeValue}. Error: ${fallbackError.message}`;
+                        barcodeSectionDiv.appendChild(errorP);
+                    }
+                }
+                resultCard.appendChild(barcodeSectionDiv);
+            } else { 
+                 const barcodeP = document.createElement('p');
+                 barcodeP.className = 'data-value-only mb-1';
+                 barcodeP.innerHTML = `<span class="font-semibold">${data.BARCD || 'Tidak Tersedia'}</span>`;
+                 resultCard.appendChild(barcodeP);
+            }
+
+            const modisP = document.createElement('p');
+            modisP.className = 'data-value-modis mt-2'; 
+            modisP.innerHTML = `<span class="font-semibold">${data.MODIS_FIELD || '-'}</span>`; 
+            resultCard.appendChild(modisP);
+
+            const shelBarisDiv = document.createElement('div');
+            shelBarisDiv.className = 'shel-baris-container'; 
+            
+            const shelP = document.createElement('p');
+            shelP.className = 'shel-baris-item';
+            shelP.innerHTML = `<span class="data-label-shel-baris">SHEL:</span> <span class="data-value-shel-baris">${data.SHEL || '-'}</span>`;
+            shelBarisDiv.appendChild(shelP);
+
+            const barisP = document.createElement('p');
+            barisP.className = 'shel-baris-item';
+            barisP.innerHTML = `<span class="data-label-shel-baris">BARIS:</span> <span class="data-value-shel-baris">${data.BARIS || '-'}</span>`;
+            shelBarisDiv.appendChild(barisP);
+
+            resultCard.appendChild(shelBarisDiv);
+            
+            return resultCard;
+        }
+
+        function resetFiltersAndSearch() {
+            searchInput.value = '';
+            modisFilter.value = '';
+            shelDariFilter.value = '';
+            shelSampaiFilter.value = '';
+            resultsContainer.classList.remove('show-result-container');
+            resultsContainer.classList.add('hidden-result-container');
+            noResultsDiv.classList.remove('show-result-container');
+            noResultsDiv.classList.add('hidden-result-container');
+            paginationControls.classList.add('hidden');
+            searchResultsDiv.innerHTML = '';
+            filteredResults = [];
+            currentPage = 1;
+            pageInfoSpan.textContent = `0 dari 0`;
+        }
+
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') performSearch(); });
+        [modisFilter, shelDariFilter, shelSampaiFilter].forEach(el => el.addEventListener('change', performSearch));
+        resetButton.addEventListener('click', resetFiltersAndSearch);
+
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayCurrentPageResults();
+            }
+        });
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayCurrentPageResults();
+            }
+        });
+
+        window.onload = () => {
+            loginScreen.classList.remove('hidden');
+            mainApp.classList.add('hidden');
+            passwordInput.focus();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
