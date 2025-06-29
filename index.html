@@ -186,34 +186,7 @@
     </style>
 </head>
 <body class="flex flex-col items-center justify-start">
-    <div id="loginScreen" class="fixed inset-0 bg-white flex items-center justify-center z-50 p-6 transition-opacity duration-500 ease-in-out">
-        <div class="bg-white p-8 sm:p-10 rounded-xl shadow-lg text-center w-full max-w-sm mx-auto border border-gray-200 transform scale-95 opacity-0 transition-all duration-500 ease-in-out" id="loginCard">
-            <h2 class="text-3xl font-bold mb-3 text-gray-800 tracking-tight">WELCOME</h2>
-            <p class="text-gray-500 mb-6 text-sm">Masukkan kata sandi untuk melanjutkan</p>
-            <div class="relative mb-6">
-                <input
-                    type="password"
-                    id="passwordInput"
-                    placeholder="Kata Sandi"
-                    class="w-full p-3 pl-12 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-500 text-base shadow-sm transition-all duration-200"
-                />
-                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                    <i data-lucide="key" class="w-5 h-5"></i>
-                </div>
-            </div>
-            <button id="loginBtn" class="button-flat bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3.5 px-6 rounded-xl w-full flex items-center justify-center gap-2 text-lg shadow-md">
-                <i data-lucide="log-in" class="w-5 h-5"></i>
-                <span>Masuk</span>
-            </button>
-            <p id="authStatus" class="mt-4 text-sm text-red-500 h-5 font-medium"></p>
-            <button id="logoutBtn" class="button-flat bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2.5 px-5 rounded-xl w-full hidden items-center justify-center gap-2 mt-4 text-base shadow-sm">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-                <span>Logout</span>
-            </button>
-        </div>
-    </div>
-
-    <div id="mainApp" class="hidden w-full max-w-xl mx-auto transform transition-all duration-500 ease-in-out opacity-0 translate-y-10 p-4">
+    <div id="mainApp" class="w-full max-w-xl mx-auto transform transition-all duration-500 ease-in-out p-4">
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full mx-auto border border-gray-200 mt-8 mb-8">
             <div class="flex items-center justify-center gap-3 mb-7 pb-4 border-b border-gray-100">
                 <i data-lucide="qr-code" class="w-8 h-8 text-teal-600"></i>
@@ -314,14 +287,6 @@
     <script type="module">
         lucide.createIcons();
         
-        const CORRECT_PASSWORD = "F8YF";
-
-        const loginScreen = document.getElementById('loginScreen');
-        const loginCard = document.getElementById('loginCard');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const authStatus = document.getElementById('authStatus');
-        const logoutBtn = document.getElementById('logoutBtn');
         const mainApp = document.getElementById('mainApp');
 
         const searchInput = document.getElementById('searchInput');
@@ -358,11 +323,6 @@
         const itemsPerPage = 1;
 
         let autoSlideInterval = null;
-
-        function setAuthStatus(message, isError = true) {
-            authStatus.textContent = message;
-            authStatus.className = `mt-4 text-sm font-medium h-5 ${isError ? 'text-red-500' : 'text-green-500'}`;
-        }
 
         function parseJsonWrappedDelimited(jsonArray) {
             const parsedData = [];
@@ -684,51 +644,6 @@
             slideIntervalInput.value = '';
         }
 
-        loginBtn.addEventListener('click', () => {
-            if (passwordInput.value === CORRECT_PASSWORD) {
-                setAuthStatus("Berhasil masuk!", false);
-                loginCard.classList.remove('scale-95', 'opacity-0');
-                loginCard.classList.add('scale-100', 'opacity-100');
-                loginScreen.classList.remove('opacity-100');
-                loginScreen.classList.add('opacity-0');
-                setTimeout(() => {
-                    loginScreen.classList.add('hidden');
-                    mainApp.classList.remove('hidden', 'opacity-0', 'translate-y-10');
-                    mainApp.classList.add('opacity-100', 'translate-y-0');
-
-                    loginBtn.classList.add('hidden');
-                    logoutBtn.classList.remove('hidden');
-                    passwordInput.classList.add('hidden');
-                    loadAllData();
-                }, 500);
-            } else {
-                setAuthStatus("Kata sandi salah. Coba lagi.");
-                passwordInput.classList.add('border-red-400');
-                setTimeout(() => passwordInput.classList.remove('border-red-400'), 1500);
-            }
-        });
-
-        logoutBtn.addEventListener('click', () => {
-            mainApp.classList.remove('opacity-100', 'translate-y-0');
-            mainApp.classList.add('opacity-0', 'translate-y-10');
-            setTimeout(() => {
-                mainApp.classList.add('hidden');
-                loginScreen.classList.remove('hidden', 'opacity-0');
-                loginScreen.classList.add('opacity-100');
-                loginCard.classList.remove('scale-100', 'opacity-100');
-                loginCard.classList.add('scale-95', 'opacity-0');
-
-                passwordInput.value = '';
-                setAuthStatus("");
-                authStatus.textContent = "Masukkan kata sandi Anda untuk melanjutkan.";
-                authStatus.className = 'text-gray-500 mb-6 text-sm';
-                loginBtn.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
-                passwordInput.classList.remove('hidden');
-                resetFiltersAndSearch();
-            }, 500);
-        });
-
         searchButton.addEventListener('click', triggerSearchAndShowModal);
         searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') triggerSearchAndShowModal(); });
         [modisFilter, shelDariFilter, shelSampaiFilter].forEach(el => el.addEventListener('change', () => {
@@ -769,14 +684,14 @@
         });
 
         window.onload = () => {
-            loginScreen.classList.remove('hidden');
+            mainApp.classList.remove('hidden');
             setTimeout(() => {
-                loginCard.classList.remove('opacity-0', 'scale-95');
-                loginCard.classList.add('opacity-100', 'scale-100');
+                mainApp.classList.remove('opacity-0', 'translate-y-10');
+                mainApp.classList.add('opacity-100', 'translate-y-0');
             }, 100);
-            mainApp.classList.add('hidden');
-            passwordInput.focus();
+            searchInput.focus();
             lucide.createIcons();
+            loadAllData();
         };
     </script>
 </body>
