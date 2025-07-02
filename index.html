@@ -13,7 +13,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F8FAFC;
+            background-color: #F0F2F5;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -114,7 +114,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         .button-flat:hover:not(:disabled) {
-            background-color: #0F766E;
+            background-color: #6B46C1;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transform: translateY(-1px);
         }
@@ -189,9 +189,9 @@
     <div id="mainApp" class="w-full max-w-xl mx-auto transform transition-all duration-500 ease-in-out p-4">
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full mx-auto border border-gray-200 mt-8 mb-8">
             <div class="flex items-center justify-center gap-3 mb-7 pb-4 border-b border-gray-100">
-                <i data-lucide="qr-code" class="w-8 h-8 text-teal-600"></i>
+                <i data-lucide="qr-code" class="w-8 h-8 text-purple-600"></i>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-center text-gray-800 tracking-tight">SCAN ITT WDCP</h1>
-                <i data-lucide="qr-code" class="w-8 h-8 text-teal-600"></i>
+                <i data-lucide="qr-code" class="w-8 h-8 text-purple-600"></i>
             </div>
 
             <div class="mb-6">
@@ -201,7 +201,7 @@
                         type="text"
                         id="searchInput"
                         placeholder="Cth: 20024079 10036631..."
-                        class="w-full p-3 pl-12 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 text-base shadow-sm"
+                        class="w-full p-3 pl-12 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 text-base shadow-sm"
                     />
                     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                         <i data-lucide="search" class="w-5 h-5"></i>
@@ -214,26 +214,26 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label for="modisFilter" class="block text-xs font-medium text-gray-600 mb-1">MODIS :</label>
-                        <select id="modisFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white text-gray-700 text-sm shadow-sm">
+                        <select id="modisFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white text-gray-700 text-sm shadow-sm">
                             <option value="">Semua MODIS</option>
                         </select>
                     </div>
                     <div>
                         <label for="shelDariFilter" class="block text-xs font-medium text-gray-600 mb-1">SHEL Dari :</label>
-                        <select id="shelDariFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white text-gray-700 text-sm shadow-sm">
+                        <select id="shelDariFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white text-gray-700 text-sm shadow-sm">
                             <option value="">Semua</option>
                         </select>
                     </div>
                     <div>
                         <label for="shelSampaiFilter" class="block text-xs font-medium text-gray-600 mb-1">SHEL Sampai :</label>
-                        <select id="shelSampaiFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white text-gray-700 text-sm shadow-sm">
+                        <select id="shelSampaiFilter" class="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white text-gray-700 text-sm shadow-sm">
                             <option value="">Semua</option>
                         </select>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 mt-5 justify-center bg-gray-50 p-3 rounded-lg border border-gray-200">
                     <label for="slideInterval" class="text-sm text-gray-700">Geser Otomatis</label>
-                    <input type="number" id="slideInterval" placeholder="0" min="1" class="w-20 p-1.5 border border-gray-300 rounded-md text-center text-sm focus:ring-2 focus:ring-teal-400">
+                    <input type="number" id="slideInterval" placeholder="0" min="1" class="w-20 p-1.5 border border-gray-300 rounded-md text-center text-sm focus:ring-2 focus:ring-purple-400">
                     <span class="text-sm text-gray-700">Detik</span>
                     <span id="autoSlideStatus" class="text-xs text-gray-500 ml-2 h-4"></span>
                 </div>
@@ -242,7 +242,7 @@
             <div class="flex flex-col gap-3 mt-6">
                 <button
                     id="searchButton"
-                    class="button-flat bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3.5 px-6 rounded-xl w-full flex items-center justify-center gap-2 text-lg shadow-md"
+                    class="button-flat bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 px-6 rounded-xl w-full flex items-center justify-center gap-2 text-lg shadow-md"
                 >
                     <i data-lucide="send" class="w-5 h-5"></i>
                     <span>Tampilkan Hasil</span>
@@ -253,7 +253,7 @@
                 </button>
             </div>
 
-            <div id="loadingIndicator" class="hidden text-center text-teal-600 font-medium my-6 p-4 rounded-xl bg-teal-50 loading-animation flex items-center justify-center gap-3 border border-teal-200 shadow-sm">
+            <div id="loadingIndicator" class="hidden text-center text-purple-600 font-medium my-6 p-4 rounded-xl bg-purple-50 loading-animation flex items-center justify-center gap-3 border border-purple-200 shadow-sm">
                 <i data-lucide="loader-circle" class="animate-spin w-5 h-5"></i>
                 <span>Memuat data...</span>
             </div>
@@ -273,11 +273,11 @@
             <div id="modalContentArea" class="space-y-4">
             </div>
             <div id="modalPaginationControls" class="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 flex-wrap gap-2">
-                <button id="modalPrevPageBtn" class="button-flat p-2.5 bg-teal-600 text-white font-bold rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10 shadow-md">
+                <button id="modalPrevPageBtn" class="button-flat p-2.5 bg-purple-600 text-white font-bold rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10 shadow-md">
                     <i data-lucide="chevron-left" class="w-5 h-5"></i>
                 </button>
                 <span id="modalPageInfo" class="text-base font-semibold text-gray-700 px-3"></span>
-                <button id="modalNextPageBtn" class="button-flat p-2.5 bg-teal-600 text-white font-bold rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10 shadow-md">
+                <button id="modalNextPageBtn" class="button-flat p-2.5 bg-purple-600 text-white font-bold rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10 shadow-md">
                     <i data-lucide="chevron-right" class="w-5 h-5"></i>
                 </button>
             </div>
